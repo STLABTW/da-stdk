@@ -6,7 +6,7 @@ CONDA_BASE := $(shell conda info --base 2>/dev/null || echo "/opt/conda")
 CONDA_ACTIVATE := source $(CONDA_BASE)/etc/profile.d/conda.sh && conda activate $(CONDA_ENV)
 EXECUTABLE := $(CONDA_ACTIVATE) && poetry run
 
-.PHONY: help clean install install-dev test test-cov lint format run-local-jupyter train table44
+.PHONY: help clean install install-dev test test-cov lint format run-local-jupyter train kaust kaust-dry
 
 .DEFAULT_GOAL := help
 
@@ -26,7 +26,8 @@ help:
 	@echo ""
 	@echo "Training & Experiments:"
 	@echo "  make train            Train model with default config"
-	@echo "  make table44          Run KAUST data experiment (see scripts/run_kaust_data.py)"
+	@echo "  make kaust            Run KAUST benchmark (4 scenarios x 2 models, with analysis)"
+	@echo "  make kaust-dry        Print KAUST run commands without executing"
 	@echo ""
 	@echo "Utilities:"
 	@echo "  make run-local-jupyter Start Jupyter Lab server"
@@ -75,12 +76,20 @@ run-local-jupyter:
 ## Train model with default config
 train:
 	@echo "Training model..."
-	@$(CONDA_ACTIVATE) && poetry run python scripts/train_st_interp.py --config configs/config_st_interp.yaml
+	@$(CONDA_ACTIVATE) && poetry run python scripts/train_default.py
 
-## Run KAUST experiment (4 scenarios × 2 backbones)
-table44:
-	@echo "Running KAUST experiment..."
-	@$(CONDA_ACTIVATE) && poetry run python scripts/run_kaust_data.py
+## Run KAUST benchmark (4 scenarios x STDK/DA-STDK) and analyze results
+kaust:
+	@echo "Running KAUST benchmark..."
+	@$(CONDA_ACTIVATE) && poetry run python scripts/run_kaust_data.py \
+		--config configs/config_default.yaml \
+		--analyze
+
+## Dry-run: print training commands for each scenario x model
+kaust-dry:
+	@$(CONDA_ACTIVATE) && poetry run python scripts/run_kaust_data.py \
+		--config configs/config_default.yaml \
+		--dry-run
 
 ## Clean up temporary files
 clean:

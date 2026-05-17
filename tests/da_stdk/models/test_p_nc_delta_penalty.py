@@ -8,7 +8,7 @@ Tests the parameter-level non-crossing penalty as defined in Section 3.2
 import torch
 
 from da_stdk.losses import compute_p_nc_delta_penalty
-from da_stdk.models.st_interp import STInterpMLP
+from da_stdk.models.stdk_mlp import STDKMLP
 
 
 class TestPNCDeltaPenalty:
@@ -138,8 +138,8 @@ class TestPNCDeltaPenalty:
             assert torch.allclose(delta_params[0].grad, torch.zeros_like(delta_params[0].grad))
 
     def test_p_nc_delta_penalty_with_model(self):
-        """Test P_nc(δ) penalty integration with STInterpMLP model"""
-        model = STInterpMLP(
+        """Test P_nc(δ) penalty integration with STDKMLP model"""
+        model = STDKMLP(
             p=0,
             k_spatial_centers=[9],
             k_temporal_centers=[5],

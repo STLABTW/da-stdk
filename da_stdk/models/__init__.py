@@ -1,7 +1,5 @@
-"""
-STNF Models
-"""
+"""DA-STDK models."""
 
-from .st_interp import STInterpMLP, create_model
+from .stdk_mlp import STDKMLP, create_model
 
-__all__ = ["STInterpMLP", "create_model"]
+__all__ = ["STDKMLP", "create_model"]

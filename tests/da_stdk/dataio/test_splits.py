@@ -1,9 +1,9 @@
-"""Tests for da_stdk/dataio/splits.py."""
+"""Tests for da_stdk/data/splits.py."""
 
 import numpy as np
 import pytest
 
-from da_stdk.dataio.splits import split_train_valid
+from da_stdk.data.splits import split_train_valid
 
 RNG = np.random.default_rng(42)
 

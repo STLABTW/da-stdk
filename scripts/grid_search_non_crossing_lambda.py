@@ -2,7 +2,7 @@
 """
 Grid search over non_crossing_lambda (P_nc(δ) penalty weight).
 
-Runs train_st_interp for each λ with use_delta_reparameterization=True,
+Runs train_default for each λ with use_delta_reparameterization=True,
 collects test_crps (mean ± std over replicates), saves CSV and prints table.
 """
 import argparse
@@ -19,7 +19,7 @@ import yaml
 def main():
     ap = argparse.ArgumentParser(description="Grid search over non_crossing_lambda")
     ap.add_argument(
-        "--config", type=str, default="configs/config_st_interp.yaml", help="Base config YAML"
+        "--config", type=str, default="configs/config_default.yaml", help="Base config YAML"
     )
     ap.add_argument(
         "--lambdas",
@@ -47,7 +47,7 @@ def main():
 
     repo_root = Path(__file__).resolve().parents[1]
     config_path = repo_root / args.config
-    train_script = repo_root / "scripts" / "train_st_interp.py"
+    train_script = repo_root / "scripts" / "train_default.py"
     if not config_path.exists():
         print(f"Config not found: {config_path}", file=sys.stderr)
         sys.exit(1)

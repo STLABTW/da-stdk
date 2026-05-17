@@ -39,7 +39,7 @@ def main():
         description="Run KAUST data experiment (all scenarios × models, N replicates)."
     )
     ap.add_argument(
-        "--config", type=str, default="configs/config_st_interp.yaml", help="Base config YAML"
+        "--config", type=str, default="configs/config_default.yaml", help="Base config YAML"
     )
     ap.add_argument("--n_experiments", type=int, default=10, help="Replicates per scenario×model")
     ap.add_argument(
@@ -54,7 +54,7 @@ def main():
     )
     ap.add_argument("--dry-run", action="store_true", help="Print commands only")
     ap.add_argument(
-        "--analyze", action="store_true", help="Run analyze_table_4_4.py after all runs finish"
+        "--analyze", action="store_true", help="Run analyze_kaust_results.py after all runs finish"
     )
     ap.add_argument(
         "--paper_main_only",
@@ -95,10 +95,10 @@ def main():
         args.use_delta_reparameterization = False
 
     repo_root = Path(__file__).resolve().parents[1]
-    train_script = repo_root / "scripts" / "train_st_interp.py"
-    analyze_script = repo_root / "scripts" / "analyze_table_4_4.py"
+    train_script = repo_root / "scripts" / "train_default.py"
+    analyze_script = repo_root / "scripts" / "analyze_kaust_results.py"
     if not train_script.exists():
-        train_script = repo_root / "train_st_interp.py"
+        train_script = repo_root / "train_default.py"
     if not train_script.exists():
         print(f"Not found: {train_script}", file=sys.stderr)
         sys.exit(1)
@@ -195,13 +195,17 @@ def main():
         if args.skip_spatial_compare_plot:
             analyze_cmd.append("--skip_spatial_compare_plot")
         if args.paper_main_only:
-            analyze_cmd.append("--paper_main_only")
+            print(
+                "Note: --paper_main_only is not used by analyze_kaust_results.py; "
+                "call da_stdk.viz.create_paper_main_figures separately if needed.",
+                file=sys.stderr,
+            )
         ret = subprocess.run(analyze_cmd, cwd=str(repo_root), env=env)
         if ret.returncode != 0:
             print(f"Analyzer exited with {ret.returncode}", file=sys.stderr)
     else:
         print(
-            f"Analyze: PYTHONPATH=. python scripts/analyze_table_4_4.py --results_dir {results_base}"
+            f"Analyze: poetry run python scripts/analyze_kaust_results.py --results_dir {results_base}"
         )
 
 

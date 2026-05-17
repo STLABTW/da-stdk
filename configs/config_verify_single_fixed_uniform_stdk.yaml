@@ -1,5 +1,5 @@
 # Single-experiment verification config: Fixed_Uniform_STDK (matches KAUST experiment run table_4_4_20260203_153043)
-# Base: config_st_interp + config_kaust_data + Fixed_Uniform_STDK (site-wise, uniform, STDK)
+# Base: config_default + config_kaust_data + Fixed_Uniform_STDK (site-wise, uniform, STDK)
 
 tag: kaust_Fixed_Uniform_STDK
 data_file: data/2b/2b_8.csv
@@ -25,7 +25,7 @@ basis_lr_ratio: 0.05
 conformal_mode: both
 crps_weighting: trapezoidal
 
-# Rest from base (config_st_interp)
+# Rest from base (config_default)
 k_spatial_centers: [25, 81, 121]
 k_temporal_centers: [10, 15, 45]
 spatial_basis_function: wendland

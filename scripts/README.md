@@ -11,17 +11,17 @@ This directory contains executable scripts for training, KAUST experiment runs, 
 
 ## Training Scripts
 
-### `train_st_interp.py`
+### `train_default.py`
 
-Train a single spatio-temporal interpolation model.
+Train with the default config (`configs/config_default.yaml`).
 
 **Basic Usage:**
 ```bash
-python scripts/train_st_interp.py --config configs/config_st_interp.yaml
+python scripts/train_default.py
 ```
 
 **Arguments:**
-- `--config` (str, default: `configs/config_st_interp.yaml`): Path to configuration YAML file
+- `--config` (str, default: `configs/config_default.yaml`): Path to configuration YAML file
 - `--data_file` (str, optional): Override data file path from config
 - `--n_experiments` (int, optional): Override number of experiments from config
 - `--base_seed` (int, optional): Override base seed from config
@@ -35,16 +35,16 @@ python scripts/train_st_interp.py --config configs/config_st_interp.yaml
 **Examples:**
 ```bash
 # Train with default config (KAUST experiment uses data/2b/2b_8.csv)
-python scripts/train_st_interp.py --config configs/config_st_interp.yaml
+python scripts/train_default.py --config configs/config_default.yaml
 
 # Train with custom data file
-python scripts/train_st_interp.py --config configs/config_st_interp.yaml --data_file data/2b/2b_8.csv
+python scripts/train_default.py --config configs/config_default.yaml --data_file data/2b/2b_8.csv
 
 # Run 10 experiments in parallel
-python scripts/train_st_interp.py --config configs/config_st_interp.yaml --n_experiments 10 --parallel --n_jobs 4
+python scripts/train_default.py --config configs/config_default.yaml --n_experiments 10 --parallel --n_jobs 4
 
 # Resume experiments 5-10
-python scripts/train_st_interp.py --config configs/config_st_interp.yaml --start_exp_id 5 --end_exp_id 10 --skip-existing
+python scripts/train_default.py --config configs/config_default.yaml --start_exp_id 5 --end_exp_id 10 --skip-existing
 ```
 
 ## KAUST experiment and Analysis
@@ -55,18 +55,19 @@ Run the KAUST data experiment: 4 scenarios (Fixed/Random × Uniform/Clustered) �
 
 **Usage:**
 ```bash
-python scripts/run_kaust_data.py
+poetry run python scripts/run_kaust_data.py --config configs/config_default.yaml
+poetry run python scripts/run_kaust_data.py --config configs/config_default.yaml --analyze
 ```
 
-See script help for optional arguments (e.g. output base dir, n_experiments).
+Merges `configs/config_kaust_data.yaml` on top of the base config. See `python scripts/run_kaust_data.py --help` for `--n_experiments`, `--non_crossing_lambda`, `--dry-run`, etc.
 
-### `analyze_table_4_4.py`
+### `analyze_kaust_results.py`
 
 Analyze KAUST experiment results: coverage tables, CRPS, and summary figures.
 
 **Usage:**
 ```bash
-python scripts/analyze_table_4_4.py <results_dir>
+poetry run python scripts/analyze_kaust_results.py --results_dir results/kaust_data_<timestamp>
 ```
 
 ### `grid_search_non_crossing_lambda.py`
@@ -95,7 +96,7 @@ python scripts/visualize_obs_density.py
 
 Configs are in `configs/`:
 
-- **config_st_interp.yaml**: Main config (paper-aligned defaults; KAUST experiment uses 2b_8, lr 0.01, crps_weighting trapezoidal). Non-crossing λ is tuned via grid search.
+- **config_default.yaml**: Main config (paper-aligned defaults; KAUST experiment uses 2b_8, lr 0.01, crps_weighting trapezoidal). Non-crossing λ is tuned via grid search.
 - **configs/experimental/**: Ablation/experiment configs (conformal ratio sweep, demo). Use by path, e.g. `--config configs/experimental/config_conformal_demo.yaml`.
 
 Key sections in the main config:
@@ -107,7 +108,8 @@ Key sections in the main config:
 ## Makefile
 
 - `make train`: Train with default config
-- `make table44`: Run KAUST experiment
+- `make kaust`: Run KAUST benchmark and analyze (`run_kaust_data.py --analyze`)
+- `make kaust-dry`: Preview KAUST commands without running
 - `make test`: Run unit tests
 - `make test-cov`: Run tests with coverage
 

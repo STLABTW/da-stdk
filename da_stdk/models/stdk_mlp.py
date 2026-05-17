@@ -1,12 +1,8 @@
 """
-Spatio-Temporal Interpolation Model
+DA-STDK backbone: cluster-adaptive spatial bases + temporal RBF + quantile MLP.
 
-Simple MLP-based model for spatio-temporal prediction:
-Input: (Covariates X, coords s, time t)
-Embedding: φ(s) via Wendland RBF, ψ(t) via Gaussian RBF
-Output: ŷ(s,t) via MLP
-
-No GRU, no Attention - pure function approximation
+Spatial centers/scales can be density-adaptive (e.g. balanced k-means) for
+cluster-wise representation; STDK uses a fixed grid, DA-STDK learns centers.
 """
 
 import math
@@ -625,14 +621,14 @@ class TemporalBasisEmbedding(nn.Module):
         return psi
 
 
-class STInterpMLP(nn.Module):
+class STDKMLP(nn.Module):
     """
-    Spatio-Temporal Interpolation via MLP
+    Spatio-temporal distributional model (STDK / DA-STDK).
 
-    Architecture:
-    Input: [X (covariates), φ(s) (spatial basis), ψ(t) (temporal basis)]
-    → MLP layers
-    → Output: ŷ(s,t)
+    Input: covariates X, coordinates s, time t.
+    Embeddings: φ(s) from multi-resolution spatial bases (cluster-adaptive when
+    learnable), ψ(t) from temporal RBFs.
+    Head: MLP → mean or multi-quantile ŷ(s, t).
     """
 
     def __init__(
@@ -918,7 +914,7 @@ class STInterpMLP(nn.Module):
         return y_pred
 
 
-def create_model(config: dict, train_coords: np.ndarray = None) -> STInterpMLP:
+def create_model(config: dict, train_coords: np.ndarray = None) -> STDKMLP:
     """
     Create model from config.
 
@@ -941,7 +937,7 @@ def create_model(config: dict, train_coords: np.ndarray = None) -> STInterpMLP:
         # For mean or single quantile: output single value
         output_dim = 1
 
-    return STInterpMLP(
+    return STDKMLP(
         p=config.get("p_covariates", 0),
         k_spatial_centers=config.get("k_spatial_centers", [25, 81, 121]),
         k_temporal_centers=config.get("k_temporal_centers", [10, 15, 45]),
@@ -952,9 +948,7 @@ def create_model(config: dict, train_coords: np.ndarray = None) -> STInterpMLP:
         spatial_init_method=config.get("spatial_init_method", "uniform"),
         spatial_basis_function=config.get("spatial_basis_function", "wendland"),
         train_coords=train_coords,
-        gradient_damping=config.get(
-            "gradient_damping", True
-        ),  # paper: DA-STDK uses gradient damping
+        gradient_damping=config.get("gradient_damping", True),
         damping_threshold=config.get("damping_threshold", 0.0),  # paper: 0% of domain
         damping_strength=config.get("damping_strength", 1.0),
         output_dim=output_dim,

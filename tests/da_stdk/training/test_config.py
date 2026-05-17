@@ -27,9 +27,9 @@ def test_config_get_dict_compat():
 
 
 def test_from_yaml_loads_main_config():
-    path = Path(__file__).resolve().parents[3] / "configs" / "config_st_interp.yaml"
+    path = Path(__file__).resolve().parents[3] / "configs" / "config_default.yaml"
     if not path.exists():
-        pytest.skip("config_st_interp.yaml not found")
+        pytest.skip("config_default.yaml not found")
     cfg = from_yaml(path)
     assert cfg.data_file == "data/2a/2a_8.csv"
     assert cfg.epochs == 500

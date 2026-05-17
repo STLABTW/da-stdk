@@ -1,13 +1,11 @@
 """
-Spatio-Temporal Interpolation Model Training Script
+Default training entrypoint (configs/config_default.yaml).
 
-Simple MLP-based spatio-temporal prediction:
-- Input: (X, s=(x,y), t)
-- Embedding: φ(s) + ψ(t)
-- Output: ŷ(s,t)
+Spatio-temporal distributional model: basis embeddings + quantile head.
 
 Usage:
-    python scripts/train_st_interp.py --config configs/config_st_interp.yaml
+    python scripts/train_default.py
+    python scripts/train_default.py --config configs/config_default.yaml
 """
 
 import argparse
@@ -30,8 +28,8 @@ from scipy.interpolate import griddata
 # Add parent directory to path
 sys.path.append(str(Path(__file__).parent.parent))
 
-from da_stdk.dataio.kaust_loader import load_kaust_csv_single, load_kaust_csv_with_test_gt
-from da_stdk.models.st_interp import create_model
+from da_stdk.data.kaust_loader import load_kaust_csv_single, load_kaust_csv_with_test_gt
+from da_stdk.models.stdk_mlp import create_model
 from da_stdk.utils import ModelEMA, set_seed
 from da_stdk.utils.conformal import (
     _assign_nearest_center,
@@ -2998,9 +2996,9 @@ def run_single_experiment(
                 model_config = first_result.get("config", config)
 
                 # Import model class
-                from da_stdk.models.st_interp import STInterpMLP
+                from da_stdk.models.stdk_mlp import STDKMLP
 
-                q_model = STInterpMLP(
+                q_model = STDKMLP(
                     k_spatial_centers=model_config["k_spatial_centers"],
                     k_temporal_centers=model_config["k_temporal_centers"],
                     spatial_basis_function=model_config.get("spatial_basis_function", "wendland"),
@@ -4868,7 +4866,7 @@ def run_multiple_experiments(
 def main():
     """Main function to run multiple experiments"""
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config", type=str, default="configs/config_st_interp.yaml")
+    parser.add_argument("--config", type=str, default="configs/config_default.yaml")
     parser.add_argument("--data_file", type=str, default=None)
     parser.add_argument("--n_experiments", type=int, default=None)
     parser.add_argument("--base_seed", type=int, default=None)

@@ -9,7 +9,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from da_stdk.dataio.kaust_loader import load_kaust_csv, load_kaust_csv_single
+from da_stdk.data.kaust_loader import load_kaust_csv, load_kaust_csv_single
 
 
 def _data_dir():

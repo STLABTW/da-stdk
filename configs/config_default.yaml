@@ -1,3 +1,6 @@
+# Default training config for train_default.py / run_kaust_data.py (base layer).
+# KAUST paper runs also merge configs/config_kaust_data.yaml on top of this file.
+
 tag: integrated
 data_file: data/2a/2a_8.csv
 k_spatial_centers:

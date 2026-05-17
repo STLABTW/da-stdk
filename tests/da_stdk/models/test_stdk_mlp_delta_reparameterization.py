@@ -1,5 +1,5 @@
 """
-Unit tests for δ reparameterization in STInterpMLP
+Unit tests for δ reparameterization in STDKMLP
 
 Tests the cumulative construction β_k = Σ_{ℓ=1}^k δ_ℓ and
 the quantile prediction Ŷ_τk = [1, h(s,t)ᵀ] β_k as described
@@ -9,7 +9,7 @@ in Section 3.2 of the thesis.
 import pytest
 import torch
 
-from da_stdk.models.st_interp import STInterpMLP, create_model
+from da_stdk.models.stdk_mlp import STDKMLP, create_model
 
 
 class TestDeltaReparameterization:
@@ -43,7 +43,7 @@ class TestDeltaReparameterization:
 
     def test_delta_reparameterization_disabled(self, model_config, sample_inputs):
         """Test that model works normally when δ reparameterization is disabled"""
-        model = STInterpMLP(use_delta_reparameterization=False, **model_config)
+        model = STDKMLP(use_delta_reparameterization=False, **model_config)
         model.eval()
 
         with torch.no_grad():
@@ -58,7 +58,7 @@ class TestDeltaReparameterization:
 
     def test_delta_reparameterization_enabled(self, model_config, sample_inputs):
         """Test that δ reparameterization is properly initialized when enabled"""
-        model = STInterpMLP(use_delta_reparameterization=True, **model_config)
+        model = STDKMLP(use_delta_reparameterization=True, **model_config)
         model.eval()
 
         # Should have mlp_trunk (shared trunk) and delta_params
@@ -75,7 +75,7 @@ class TestDeltaReparameterization:
 
     def test_delta_parameters_initialization(self, model_config):
         """Test that δ parameters are properly initialized"""
-        model = STInterpMLP(use_delta_reparameterization=True, **model_config)
+        model = STDKMLP(use_delta_reparameterization=True, **model_config)
 
         # δ parameters should be initialized (not all zeros after init)
         # They are initialized with small random values
@@ -86,7 +86,7 @@ class TestDeltaReparameterization:
 
     def test_forward_pass_with_delta(self, model_config, sample_inputs):
         """Test forward pass with δ reparameterization"""
-        model = STInterpMLP(use_delta_reparameterization=True, **model_config)
+        model = STDKMLP(use_delta_reparameterization=True, **model_config)
         model.eval()
 
         with torch.no_grad():
@@ -98,7 +98,7 @@ class TestDeltaReparameterization:
 
     def test_cumulative_beta_construction(self, model_config, sample_inputs):
         """Test that β_k = Σ_{ℓ=1}^k δ_ℓ is correctly computed"""
-        model = STInterpMLP(use_delta_reparameterization=True, **model_config)
+        model = STDKMLP(use_delta_reparameterization=True, **model_config)
         model.eval()
 
         # Manually set δ parameters to known values for testing
@@ -128,7 +128,7 @@ class TestDeltaReparameterization:
 
     def test_get_delta_parameters(self, model_config):
         """Test get_delta_parameters() method"""
-        model = STInterpMLP(use_delta_reparameterization=True, **model_config)
+        model = STDKMLP(use_delta_reparameterization=True, **model_config)
 
         delta_list = model.get_delta_parameters()
         assert delta_list is not None
@@ -136,12 +136,12 @@ class TestDeltaReparameterization:
         assert all(isinstance(d, torch.nn.Parameter) for d in delta_list)
 
         # When disabled, should return None
-        model_disabled = STInterpMLP(use_delta_reparameterization=False, **model_config)
+        model_disabled = STDKMLP(use_delta_reparameterization=False, **model_config)
         assert model_disabled.get_delta_parameters() is None
 
     def test_output_consistency(self, model_config, sample_inputs):
         """Test that outputs are consistent across multiple forward passes"""
-        model = STInterpMLP(use_delta_reparameterization=True, **model_config)
+        model = STDKMLP(use_delta_reparameterization=True, **model_config)
         model.eval()
 
         with torch.no_grad():
@@ -153,7 +153,7 @@ class TestDeltaReparameterization:
 
     def test_gradient_flow(self, model_config, sample_inputs):
         """Test that gradients flow through δ parameters"""
-        model = STInterpMLP(use_delta_reparameterization=True, **model_config)
+        model = STDKMLP(use_delta_reparameterization=True, **model_config)
         model.train()
 
         output = model(sample_inputs["X"], sample_inputs["coords"], sample_inputs["t"])
@@ -183,7 +183,7 @@ class TestDeltaReparameterization:
 
     def test_quantile_monotonicity_potential(self, model_config, sample_inputs):
         """Test that δ reparameterization structure enables monotonicity"""
-        model = STInterpMLP(use_delta_reparameterization=True, **model_config)
+        model = STDKMLP(use_delta_reparameterization=True, **model_config)
         model.eval()
 
         with torch.no_grad():
@@ -195,7 +195,7 @@ class TestDeltaReparameterization:
 
     def test_single_quantile_no_delta(self, sample_inputs):
         """Test that single quantile doesn't use δ reparameterization"""
-        model = STInterpMLP(
+        model = STDKMLP(
             output_dim=1,
             use_delta_reparameterization=True,  # Even if enabled, single output shouldn't use it
             k_spatial_centers=[9],
@@ -214,7 +214,7 @@ class TestDeltaReparameterization:
 
     def test_compute_sparsity_penalty_with_delta(self, model_config):
         """Test that compute_sparsity_penalty works with δ reparameterization enabled"""
-        model = STInterpMLP(use_delta_reparameterization=True, **model_config)
+        model = STDKMLP(use_delta_reparameterization=True, **model_config)
 
         # Test all penalty types
         for penalty_type in ["element", "group", "sparse_group", "none"]:
@@ -230,7 +230,7 @@ class TestDeltaReparameterization:
 
     def test_compute_sparsity_penalty_without_delta(self, model_config):
         """Test that compute_sparsity_penalty works without δ reparameterization"""
-        model = STInterpMLP(use_delta_reparameterization=False, **model_config)
+        model = STDKMLP(use_delta_reparameterization=False, **model_config)
 
         # Test all penalty types
         for penalty_type in ["element", "group", "sparse_group", "none"]:
@@ -246,8 +246,8 @@ class TestDeltaReparameterization:
 
     def test_sparsity_penalty_consistency(self, model_config):
         """Test that sparsity penalty produces consistent results with/without δ"""
-        model_delta = STInterpMLP(use_delta_reparameterization=True, **model_config)
-        model_standard = STInterpMLP(use_delta_reparameterization=False, **model_config)
+        model_delta = STDKMLP(use_delta_reparameterization=True, **model_config)
+        model_standard = STDKMLP(use_delta_reparameterization=False, **model_config)
 
         # Initialize both models with same weights for fair comparison
         # Copy weights from standard to delta (mlp_trunk should match mlp structure)
@@ -286,7 +286,7 @@ class TestDeltaReparameterization:
     # Example test structure:
     # def test_training_with_delta_and_sparsity(self, model_config, sample_inputs):
     #     """Test full training loop with δ reparameterization and sparsity penalties"""
-    #     model = STInterpMLP(use_delta_reparameterization=True, **model_config)
+    #     model = STDKMLP(use_delta_reparameterization=True, **model_config)
     #     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     #     # ... create dummy data loader ...
     #     # ... run a few training steps with sparsity_penalty_type='sparse_group' ...

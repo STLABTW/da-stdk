@@ -3,7 +3,7 @@
 Configs here are not used by the main paper pipeline. Scripts can still use them by path, e.g.:
 
 ```bash
-python scripts/train_st_interp.py --config configs/experimental/config_conformal_demo.yaml
+python scripts/train_default.py --config configs/experimental/config_conformal_demo.yaml
 ```
 
 - **config_conformal_ratio_0.2.yaml** … **config_conformal_ratio_0.35.yaml**: Conformal calibration ratio sweep (ablations).

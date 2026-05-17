@@ -13,8 +13,8 @@ import yaml
 
 def main():
     repo_root = Path(__file__).resolve().parents[1]
-    config_path = repo_root / "configs" / "config_st_interp.yaml"
-    train_script = repo_root / "scripts" / "train_st_interp.py"
+    config_path = repo_root / "configs" / "config_default.yaml"
+    train_script = repo_root / "scripts" / "train_default.py"
     out_base = repo_root / "results" / "lambda_test"
     out_base.mkdir(parents=True, exist_ok=True)
 

@@ -1,1 +1,1 @@
-"""Tests for da_stdk.dataio (loaders, obs_sampling, splits)."""
+"""Tests for da_stdk.data (loaders, obs_sampling, splits)."""

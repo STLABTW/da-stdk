@@ -280,7 +280,7 @@ def sample_observed_sites(
     elif sampling_method == "biased":
         # Biased sampling (weighted near origin). Uses Gaussian weights;
         # this is NOT the same as KAUST experiment / paper clustered formula
-        # p(s) ∝ (1+10||s||)^{-2} used in train_st_interp and visualize_obs_density.
+        # p(s) ∝ (1+10||s||)^{-2} used in train_default and visualize_obs_density.
         distances = np.sqrt(coords[:, 0] ** 2 + coords[:, 1] ** 2)
         weights = np.exp(-(distances**2) / (2 * bias_sigma**2))
 

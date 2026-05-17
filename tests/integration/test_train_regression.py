@@ -37,7 +37,7 @@ def test_train_regression_stdk_short_run(data_available, tmp_path_factory):
     out_dir = tmp_path_factory.mktemp("regression_out")
     cmd = [
         sys.executable,
-        str(PROJECT_ROOT / "scripts" / "train_st_interp.py"),
+        str(PROJECT_ROOT / "scripts" / "train_default.py"),
         "--config",
         str(CONFIG_PATH),
         "--output_dir",

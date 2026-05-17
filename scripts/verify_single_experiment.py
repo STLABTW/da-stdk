@@ -7,7 +7,7 @@ Reference metrics (Fixed_Uniform_STDK, experiment 1, seed 2025):
 
 Usage:
   # 1) Run one experiment (~18 min):
-  PYTHONPATH=. python scripts/train_st_interp.py \\
+  PYTHONPATH=. python scripts/train_default.py \\
     --config configs/config_verify_single_fixed_uniform_stdk.yaml \\
     --output_dir results/verify_single/Fixed_Uniform_STDK --n_experiments 1 --base_seed 2025
   # 2) Compare to reference:

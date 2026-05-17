@@ -7,7 +7,7 @@ Section 8.4: Confirm obs mask logic with fixed seed (reproducibility).
 import numpy as np
 import pytest
 
-from da_stdk.dataio.obs_sampling import create_spatial_obs_prob_fn, sample_observations
+from da_stdk.data.obs_sampling import create_spatial_obs_prob_fn, sample_observations
 
 
 def test_create_spatial_obs_prob_fn_uniform():

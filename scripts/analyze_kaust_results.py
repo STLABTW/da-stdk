@@ -190,7 +190,7 @@ def load_table_4_4_results(results_dir: Path):
                     scenario_data = json.load(f)
                     results.extend(scenario_data.get("results", []))
             else:
-                # train_st_interp layout: experiments/1/, experiments/2/, ...
+                # train_default layout: experiments/1/, experiments/2/, ...
                 exp_parent = scenario_dir / "experiments"
                 if exp_parent.exists():
                     search_dirs = list(exp_parent.iterdir())
@@ -899,7 +899,7 @@ def print_table_4_4(pivot_df, pivot_std, summary_df):
 def main():
     parser = argparse.ArgumentParser(description="Analyze KAUST experiment results")
     parser.add_argument(
-        "--results_dir", type=str, required=True, help="Results directory from run_table_4_4.py"
+        "--results_dir", type=str, required=True, help="Results directory from run_kaust_data.py"
     )
     parser.add_argument(
         "--output_csv", type=str, default=None, help="Output CSV file path (optional)"

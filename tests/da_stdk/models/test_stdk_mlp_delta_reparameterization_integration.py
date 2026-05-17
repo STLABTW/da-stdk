@@ -10,8 +10,8 @@ from pathlib import Path
 import pytest
 import torch
 
-from da_stdk.dataio.kaust_loader import load_kaust_csv_single
-from da_stdk.models.st_interp import STInterpMLP, create_model
+from da_stdk.data.kaust_loader import load_kaust_csv_single
+from da_stdk.models.stdk_mlp import STDKMLP, create_model
 
 
 class TestDeltaReparameterizationIntegration:
@@ -55,7 +55,7 @@ class TestDeltaReparameterizationIntegration:
         coords = sample_data["coords"]
 
         # Create model with δ reparameterization
-        model = STInterpMLP(
+        model = STDKMLP(
             p=0,
             k_spatial_centers=[9],  # 3x3 grid
             k_temporal_centers=[5],
@@ -90,7 +90,7 @@ class TestDeltaReparameterizationIntegration:
         coords = sample_data["coords"]
 
         # Create model without δ reparameterization
-        model = STInterpMLP(
+        model = STDKMLP(
             p=0,
             k_spatial_centers=[9],
             k_temporal_centers=[5],
@@ -125,7 +125,7 @@ class TestDeltaReparameterizationIntegration:
 
         # Create two models with same initialization seed
         torch.manual_seed(42)
-        model_delta = STInterpMLP(
+        model_delta = STDKMLP(
             p=0,
             k_spatial_centers=[9],
             k_temporal_centers=[5],
@@ -140,7 +140,7 @@ class TestDeltaReparameterizationIntegration:
         )
 
         torch.manual_seed(42)
-        model_standard = STInterpMLP(
+        model_standard = STDKMLP(
             p=0,
             k_spatial_centers=[9],
             k_temporal_centers=[5],
@@ -175,7 +175,7 @@ class TestDeltaReparameterizationIntegration:
         coords = sample_data["coords"]
         S = len(coords)
 
-        model = STInterpMLP(
+        model = STDKMLP(
             p=0,
             k_spatial_centers=[9],
             k_temporal_centers=[5],
@@ -207,7 +207,7 @@ class TestDeltaReparameterizationIntegration:
         """Test that gradients flow correctly with real data"""
         coords = sample_data["coords"]
 
-        model = STInterpMLP(
+        model = STDKMLP(
             p=0,
             k_spatial_centers=[9],
             k_temporal_centers=[5],
@@ -274,7 +274,7 @@ class TestDeltaReparameterizationIntegration:
         """Test that δ reparameterization outputs are in reasonable range"""
         coords = sample_data["coords"]
 
-        model = STInterpMLP(
+        model = STDKMLP(
             p=0,
             k_spatial_centers=[9],
             k_temporal_centers=[5],

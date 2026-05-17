@@ -50,7 +50,7 @@ jobs:
 
       - name: Run unit tests with coverage
         run: |
-          poetry run python -m pytest tests/ -v --cov=da_stdk --cov-report=xml --cov-report=term-missing --cov-report=html --ignore=tests/da_stdk/models/test_st_interp_delta_reparameterization_integration.py
+          poetry run python -m pytest tests/ -v --cov=da_stdk --cov-report=xml --cov-report=term-missing --cov-report=html --ignore=tests/da_stdk/models/test_stdk_mlp_delta_reparameterization_integration.py
 
       - name: Upload coverage to Codecov
         if: matrix.python-version == '3.10'

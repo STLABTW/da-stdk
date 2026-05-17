@@ -1,7 +1,7 @@
 """
 Observation sampling: spatial probability function and observation mask sampling.
 
-Used by train_st_interp and visualize_obs_density. KAUST experiment: obs_ratio 0.1,
+Used by train_default and visualize_obs_density. KAUST experiment: obs_ratio 0.1,
 obs_method site-wise/random, obs_spatial_pattern uniform/corner (intensity 10).
 """
 

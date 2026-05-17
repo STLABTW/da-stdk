@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from da_stdk.dataio.obs_sampling import create_spatial_obs_prob_fn, sample_observations
+from da_stdk.data.obs_sampling import create_spatial_obs_prob_fn, sample_observations
 
 
 def compute_observation_density(

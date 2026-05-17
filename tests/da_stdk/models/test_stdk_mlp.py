@@ -1,5 +1,5 @@
 """
-Tests for da_stdk/models/st_interp.py.
+Tests for da_stdk/models/stdk_mlp.py.
 Focuses on SpatialBasisEmbedding init variants, TemporalBasisEmbedding,
 and create_model.
 """
@@ -8,9 +8,9 @@ import numpy as np
 import pytest
 import torch
 
-from da_stdk.models.st_interp import (
+from da_stdk.models.stdk_mlp import (
+    STDKMLP,
     SpatialBasisEmbedding,
-    STInterpMLP,
     TemporalBasisEmbedding,
     create_model,
 )
@@ -144,7 +144,7 @@ class TestCreateModel:
             "p_covariates": 0,
         }
         model = create_model(config)
-        assert isinstance(model, STInterpMLP)
+        assert isinstance(model, STDKMLP)
 
     def test_multi_quantile_regression(self, capsys):
         config = {
@@ -156,7 +156,7 @@ class TestCreateModel:
             "p_covariates": 0,
         }
         model = create_model(config)
-        assert isinstance(model, STInterpMLP)
+        assert isinstance(model, STDKMLP)
 
     def test_with_train_coords(self, capsys):
         coords = RNG.uniform(0, 1, (100, 2)).astype(np.float32)
@@ -169,8 +169,8 @@ class TestCreateModel:
             "p_covariates": 0,
         }
         model = create_model(config, train_coords=coords)
-        assert isinstance(model, STInterpMLP)
+        assert isinstance(model, STDKMLP)
 
     def test_default_config(self, capsys):
         model = create_model({})
-        assert isinstance(model, STInterpMLP)
+        assert isinstance(model, STDKMLP)

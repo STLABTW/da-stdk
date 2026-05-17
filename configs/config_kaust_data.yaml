@@ -1,4 +1,4 @@
-# KAUST data experiment overrides (merged on top of config_st_interp.yaml by run_kaust_data.py)
+# KAUST data experiment overrides (merged on top of config_default.yaml by run_kaust_data.py)
 # Paper: split_method=random, train_ratio=0.8, calibration 20% from train, lr=0.01, trapezoidal CRPS.
 
 data_file: data/2b/2b_8.csv

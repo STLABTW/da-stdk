@@ -30,8 +30,8 @@ pip install -e .
 
 ```python
 import da_stdk
-from da_stdk.models import STInterpMLP, create_model
-from da_stdk.dataio.kaust_loader import load_kaust_csv_single
+from da_stdk.models import STDKMLP, create_model
+from da_stdk.data.kaust_loader import load_kaust_csv_single
 ```
 
 ## Run
@@ -39,17 +39,19 @@ from da_stdk.dataio.kaust_loader import load_kaust_csv_single
 **Single training run**
 
 ```bash
-poetry run python scripts/train_st_interp.py --config configs/config_st_interp.yaml
+poetry run python scripts/train_default.py
 ```
 
 **KAUST benchmark (multiple scenarios / models)**
 
 ```bash
-make table44
-# or:
-poetry run python scripts/run_kaust_data.py --config configs/config_st_interp.yaml --n_experiments 10
-poetry run python scripts/analyze_kaust_results.py <results_dir>
+make kaust
+# or (train only, then analyze manually):
+poetry run python scripts/run_kaust_data.py --config configs/config_default.yaml
+poetry run python scripts/analyze_kaust_results.py --results_dir results/kaust_data_<timestamp>
 ```
+
+`make kaust` runs all scenario×model combos and calls `analyze_kaust_results.py` when finished (`--analyze`). Use `make kaust-dry` to preview commands.
 
 More scripts and flags: [`scripts/README.md`](scripts/README.md).
 
