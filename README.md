@@ -14,7 +14,7 @@ Benchmarks in this repo use the KAUST spatio-temporal datasets (scenarios 2a/2b)
 
 ## Architecture
 
-![Model backbone](artifacts/backbone.png)
+![Model backbone](https://raw.githubusercontent.com/STLABTW/da-stdk/main/artifacts/backbone.png)
 
 Cluster-adaptive spatial basis, temporal basis, and covariates are concatenated and passed through a shared MLP trunk. Quantile heads predict multiple levels; cluster-aware CQR produces calibrated prediction intervals.
 
