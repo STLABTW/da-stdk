@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "da-stdk"
-version = "0.1.0"
+version = "1.0.0"
 description = "DA-STDK: Data-adaptive spatio-temporal distributional prediction (cluster-adaptive bases, conformal calibration)"
 authors = [
     "Wen-Ting Wang <egpivo@gmail.com>"

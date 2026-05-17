@@ -1,6 +1,4 @@
-"""
-Losses and metrics: CRPS (Eq. 4.6), check loss, P_nc(δ), PICP, QICE.
-"""
+"""Losses and distributional metrics."""
 
 from .crps import (
     check_loss_numpy,

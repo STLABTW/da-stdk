@@ -1,6 +1,4 @@
-"""
-Temporal series visualizations: per-site time series, quantile bands, conformal highlight.
-"""
+"""Time-series and conformal-interval plots."""
 
 from pathlib import Path
 

@@ -1,6 +1,4 @@
-"""
-Visualization helpers for training curves, observation patterns, spatial and temporal plots.
-"""
+"""Plots for training, observations, spatial/temporal views, and KAUST analysis."""
 
 from .basis import plot_basis_evolution
 from .kaust_analysis import (

@@ -14,39 +14,10 @@ from sklearn.mixture import GaussianMixture
 
 
 class SpatialBasisEmbedding(nn.Module):
-    """
-    Spatial basis embedding with multi-resolution centers
+    """Multi-resolution spatial RBF bases on [0, 1]^2.
 
-    Supports multiple basis function types:
-    - 'wendland': Wendland C^4 RBF (compact support)
-    - 'gaussian': Gaussian RBF (infinite support, rapid decay)
-    - 'triangular': Triangular/Linear basis (compact support)
-
-    All basis functions are calibrated to have similar effective support
-    (same standard deviation) for fair comparison.
-
-    Four initialization methods:
-    1. 'uniform': Regular grid (original method)
-       - n_centers: list of integers (e.g., [25, 81, 121])
-       - Each integer k -> sqrt(k) x sqrt(k) regular grid in [0,1]^2
-       - Bandwidth: 2.5 × grid spacing for each resolution
-
-    2. 'gmm': Gaussian Mixture Model (data-adaptive, density estimation)
-       - Fit GMM with n_components from n_centers list
-       - Use GMM means as centers
-       - Use GMM std * 2.5 as bandwidths
-       - Multi-resolution: smaller n_components -> larger bandwidth
-
-    3. 'random_site': Random sampling from observation sites (density-weighted)
-       - Randomly sample k sites from training coordinates
-       - Bandwidth: 2.5 × average distance to 4 nearest neighbors
-       - Data-driven but faster than GMM
-
-    4. 'kmeans_balanced': Balanced K-means (density-adaptive via equal coverage)
-       - Size-constrained K-means: each cluster has exactly n/k samples
-       - Enforces balanced spatial coverage (density-adaptive)
-       - Centers can be anywhere in data space
-       - Bandwidth: 2.5 × average distance to 4 nearest cluster centers
+    Basis: ``wendland``, ``gaussian``, or ``triangular`` (calibrated support).
+    Init: ``uniform`` (grid), ``gmm``, ``random_site``, or ``kmeans_balanced`` (DA-STDK).
     """
 
     # Calibration factors to match effective support across basis functions
@@ -120,22 +91,7 @@ class SpatialBasisEmbedding(nn.Module):
         self.k = centers.shape[0]
 
     def _gradient_damping_hook(self, grad):
-        """
-        Gradient hook that applies distance-based damping to center movements.
-
-        Bases that have moved far from initial positions get reduced gradients,
-        preventing them from flying away while allowing small beneficial movements.
-
-        Damping function:
-        - distance < threshold: no damping (factor = 1.0)
-        - distance >= threshold: exponential damping based on excess distance
-
-        Args:
-            grad: gradient tensor (k, 2)
-
-        Returns:
-            damped_grad: gradient with distance-based damping applied
-        """
+        """Damp center gradients when movement exceeds ``damping_threshold``."""
         with torch.no_grad():
             # Compute distance from initial position for each center
             movement = self.centers - self.centers_init  # (k, 2)
@@ -161,7 +117,7 @@ class SpatialBasisEmbedding(nn.Module):
             return self._bandwidths
 
     def _init_uniform(self):
-        """Original uniform grid initialization"""
+        """Regular multi-resolution grids; bandwidth = 2.5 × spacing."""
         centers_list = []
         bandwidths_list = []
 
@@ -196,20 +152,7 @@ class SpatialBasisEmbedding(nn.Module):
         return centers, bandwidths
 
     def _init_gmm(self, train_coords: np.ndarray):
-        """
-        GMM-based data-adaptive initialization
-
-        Uses training samples (with temporal duplicates) to reflect spatio-temporal density.
-        Subsamples to 50000 if data is too large for computational efficiency.
-
-        Args:
-            train_coords: (N, 2) numpy array of training coordinates in [0,1]^2
-                         (includes temporal duplicates to reflect data density)
-
-        Returns:
-            centers: (sum(n_centers), 2) tensor
-            bandwidths: (sum(n_centers),) tensor
-        """
+        """GMM means/variances per resolution (subsampled for speed)."""
         centers_list = []
         bandwidths_list = []
 
@@ -281,25 +224,7 @@ class SpatialBasisEmbedding(nn.Module):
         return centers, bandwidths
 
     def _init_random_site(self, train_coords: np.ndarray):
-        """
-        Random site sampling initialization
-
-        For each resolution k:
-        1. Randomly sample k sites from training coordinates (WITH temporal duplicates)
-        2. Compute bandwidth as 2.5 × average distance to 4 nearest neighbors
-
-        This gives a data-driven initialization that's faster than GMM
-        and naturally adapts to spatio-temporal data density.
-        Sites with more temporal observations have higher probability of being selected.
-
-        Args:
-            train_coords: (N, 2) numpy array of training coordinates in [0,1]^2
-                         (includes temporal duplicates to reflect data density)
-
-        Returns:
-            centers: (sum(n_centers), 2) tensor
-            bandwidths: (sum(n_centers),) tensor
-        """
+        """Sample k training sites; bandwidth from 4-NN distance."""
         from scipy.spatial.distance import cdist
 
         centers_list = []
@@ -357,26 +282,7 @@ class SpatialBasisEmbedding(nn.Module):
         return centers, bandwidths
 
     def _init_kmeans_balanced(self, train_coords: np.ndarray):
-        """
-        Balanced K-means clustering initialization
-
-        For each resolution k:
-        1. Run size-constrained K-means: each cluster has exactly n/k samples
-        2. Use cluster centers as basis centers (can be anywhere, not limited to obs sites)
-        3. Compute bandwidth as 2.5 × average distance to 4 nearest cluster centers
-
-        This enforces balanced spatial coverage (each center covers equal number of samples).
-        Unlike standard K-means (which minimizes variance), this ensures equal cluster sizes.
-        Subsamples to 50000 if data is too large for computational efficiency.
-
-        Args:
-            train_coords: (N, 2) numpy array of training coordinates in [0,1]^2
-                         (includes temporal duplicates to reflect data density)
-
-        Returns:
-            centers: (sum(n_centers), 2) tensor
-            bandwidths: (sum(n_centers),) tensor
-        """
+        """Size-constrained k-means centers (DA-STDK default); bandwidth from 4-NN."""
         from k_means_constrained import KMeansConstrained
         from scipy.spatial.distance import cdist
 
@@ -454,10 +360,7 @@ class SpatialBasisEmbedding(nn.Module):
         return centers, bandwidths
 
     def forward(self, coords: torch.Tensor):
-        """
-        coords: (B, 2) or (N, 2) - normalized coordinates in [0,1]^2
-        Returns: (B, k) or (N, k) - basis function values
-        """
+        """Return φ(s) with shape (batch, k_spatial)."""
         # Compute pairwise distances
         dist = torch.cdist(
             coords.unsqueeze(0) if coords.dim() == 2 else coords, self.centers.unsqueeze(0)
@@ -484,50 +387,20 @@ class SpatialBasisEmbedding(nn.Module):
         return phi
 
     def _wendland(self, r: torch.Tensor) -> torch.Tensor:
-        """
-        Wendland C^4 RBF
-        φ(r) = (1-r)^6_+ * (35*r^2 + 18*r + 3) / 3 for r in [0,1]
-
-        Compact support: [0, 1]
-        C^4 continuous (4 times continuously differentiable)
-        """
+        """Wendland C^4 RBF on [0, 1]."""
         r = r.clamp(max=1.0)
         return torch.pow(1 - r, 6) * (35 * r**2 + 18 * r + 3) / 3
 
     def _gaussian(self, r: torch.Tensor) -> torch.Tensor:
-        """
-        Gaussian RBF
-        φ(r) = exp(-0.5 * r^2)
-
-        Infinite support but rapid decay
-        C^∞ continuous (infinitely differentiable)
-        """
+        """Gaussian RBF exp(-0.5 r²)."""
         return torch.exp(-0.5 * r**2)
 
     def _triangular(self, r: torch.Tensor) -> torch.Tensor:
-        """
-        Triangular (Linear) basis
-        φ(r) = (1-r)_+ for r in [0,1]
-
-        Compact support: [0, 1]
-        C^0 continuous (continuous but not differentiable at r=1)
-        """
+        """Linear tent basis (1 - r)+."""
         return torch.clamp(1 - r, min=0.0)
 
     def compute_domain_penalty(self, domain_bounds=(0.0, 1.0)):
-        """
-        Compute L2 penalty for centers outside the domain [0,1]^2
-
-        Only applies penalty to centers that violate boundaries:
-        - penalty = sum of squared distances from boundary for out-of-bound centers
-        - No penalty for centers inside domain
-
-        Args:
-            domain_bounds: (min, max) tuple for domain boundaries
-
-        Returns:
-            penalty: scalar tensor (0 if all centers are inside domain)
-        """
+        """L2 penalty for learnable centers outside ``domain_bounds``."""
         if not self.learnable:
             return torch.tensor(0.0, device=self.centers.device)
 
@@ -549,15 +422,7 @@ class SpatialBasisEmbedding(nn.Module):
         return penalty
 
     def compute_movement_penalty(self):
-        """
-        Compute L2 penalty for centers moving away from initial positions
-
-        Penalty = sum of squared distances from initial positions
-        This encourages centers to stay close to their initialization
-
-        Returns:
-            penalty: scalar tensor (0 if centers haven't moved or not learnable)
-        """
+        """L2 penalty on deviation from initial center positions."""
         if not self.learnable:
             return torch.tensor(0.0, device=self.centers.device)
 
@@ -571,12 +436,7 @@ class SpatialBasisEmbedding(nn.Module):
 
 
 class TemporalBasisEmbedding(nn.Module):
-    """
-    Temporal basis using Gaussian RBF with multi-resolution centers
-    Centers: regular grid with n_centers list (e.g., [10, 15, 45]) in [0,1]
-    Bandwidth: temporal_bandwidth_factor × grid spacing for each resolution (default 2.5)
-    Basis function: exp(-0.5 * (t - center)^2 / bandwidth^2)
-    """
+    """Multi-resolution Gaussian RBF bases ψ(t) on [0, 1]."""
 
     def __init__(self, n_centers: list = [10, 15, 45], temporal_bandwidth_factor: float = 2.5):
         super().__init__()
@@ -606,10 +466,7 @@ class TemporalBasisEmbedding(nn.Module):
         self.k_time = self.centers.shape[0]
 
     def forward(self, t: torch.Tensor):
-        """
-        t: (B, 1) or (N, 1) - time values in [t_min, t_max]
-        Returns: (B, k_time) or (N, k_time) - Gaussian RBF basis
-        """
+        """Return ψ(t) with shape (batch, k_temporal)."""
         # t: (B, 1) or (N, 1), centers: (k_time,)
         # Compute distances: (t - center)
         diff = t - self.centers.view(1, -1)  # (B, k_time) or (N, k_time)
@@ -622,14 +479,7 @@ class TemporalBasisEmbedding(nn.Module):
 
 
 class STDKMLP(nn.Module):
-    """
-    Spatio-temporal distributional model (STDK / DA-STDK).
-
-    Input: covariates X, coordinates s, time t.
-    Embeddings: φ(s) from multi-resolution spatial bases (cluster-adaptive when
-    learnable), ψ(t) from temporal RBFs.
-    Head: MLP → mean or multi-quantile ŷ(s, t).
-    """
+    """STDK / DA-STDK: φ(s) + ψ(t) embeddings, MLP head (mean or multi-quantile)."""
 
     def __init__(
         self,
@@ -722,52 +572,21 @@ class STDKMLP(nn.Module):
             self.delta_params = None
 
     def compute_domain_penalty(self):
-        """
-        Compute penalty for basis centers outside domain [0,1]^2
-
-        Returns:
-            penalty: scalar tensor
-        """
+        """Delegate to spatial basis domain penalty."""
         return self.spatial_basis.compute_domain_penalty()
 
     def compute_movement_penalty(self):
-        """
-        Compute penalty for basis centers moving away from initial positions
-
-        Returns:
-            penalty: scalar tensor
-        """
+        """Delegate to spatial basis movement penalty."""
         return self.spatial_basis.compute_movement_penalty()
 
     def get_delta_parameters(self):
-        """
-        Get δ parameters for non-crossing penalty computation.
-
-        Returns:
-            List of δ_k tensors, each of shape (d+1,) where d = last_hidden_dim.
-            Returns None if δ reparameterization is not enabled.
-        """
+        """δ_k parameters for P_nc(δ), or None if disabled."""
         if not self.use_delta_reparameterization or self.delta_params is None:
             return None
         return list(self.delta_params)
 
     def compute_sparsity_penalty(self, penalty_type="element", lambda_l1=0.01, lambda_group=0.01):
-        """
-        Compute sparsity penalty on first layer weights connected to spatial/temporal embeddings
-
-        Supports three types:
-        1. 'element': Element-wise L1 penalty (connection selection)
-        2. 'group': Group Lasso penalty (basis selection)
-        3. 'sparse_group': Sparse Group Lasso (both basis and connection selection)
-
-        Args:
-            penalty_type: 'element', 'group', or 'sparse_group'
-            lambda_l1: Weight for element-wise L1 penalty
-            lambda_group: Weight for group Lasso penalty
-
-        Returns:
-            dict with 'spatial_penalty', 'temporal_penalty', and 'total_penalty'
-        """
+        """Sparsity on first-layer weights for φ(s) and ψ(t) blocks."""
         if penalty_type not in ["element", "group", "sparse_group", "none"]:
             raise ValueError(f"Unknown penalty_type: {penalty_type}")
 
@@ -816,18 +635,7 @@ class STDKMLP(nn.Module):
         }
 
     def _compute_penalty_for_block(self, weight_block, penalty_type, lambda_l1, lambda_group):
-        """
-        Compute penalty for a weight block (e.g., spatial or temporal)
-
-        Args:
-            weight_block: (n_basis, hidden_dim) weight matrix
-            penalty_type: 'element', 'group', or 'sparse_group'
-            lambda_l1: Element-wise L1 penalty weight
-            lambda_group: Group Lasso penalty weight
-
-        Returns:
-            penalty: scalar tensor
-        """
+        """Element, group, or sparse-group penalty on one basis block."""
         if penalty_type == "element":
             # Element-wise L1: sum of absolute values
             return lambda_l1 * weight_block.abs().sum()
@@ -855,14 +663,7 @@ class STDKMLP(nn.Module):
             return torch.tensor(0.0, device=weight_block.device)
 
     def forward(self, X: torch.Tensor, coords: torch.Tensor, t: torch.Tensor):
-        """
-        X: (B, p) or (N, p) - covariates (can be empty if p=0)
-        coords: (B, 2) or (N, 2) - spatial coordinates (x, y) normalized to [0,1]
-        t: (B, 1) or (N, 1) - temporal coordinate normalized to [t_min, t_max]
-
-        Returns: (B, 1) or (N, 1) or (B, Q) or (N, Q) - predicted values ŷ(s,t)
-                 For multi-quantile with δ reparameterization: (B, Q) or (N, Q)
-        """
+        """Predict ŷ(s, t); shape (batch, output_dim)."""
         # Spatial basis embedding
         phi_s = self.spatial_basis(coords)  # (B, k_spatial) or (N, k_spatial)
 
@@ -915,17 +716,9 @@ class STDKMLP(nn.Module):
 
 
 def create_model(config: dict, train_coords: np.ndarray = None) -> STDKMLP:
-    """
-    Create model from config.
+    """Build ``STDKMLP`` from a training config dict.
 
-    KAUST experiment:
-    - STDK: spatial_learnable=False, spatial_init_method='uniform' (fixed grid).
-    - DA-STDK: spatial_learnable=True, spatial_init_method='kmeans_balanced'.
-    - spatial_init_method='gmm' is a legacy option (not used in KAUST experiment).
-
-    Args:
-        config: configuration dictionary
-        train_coords: (N, 2) numpy array of training coordinates for kmeans_balanced / GMM init
+    STDK: fixed grid (``spatial_learnable=False``). DA-STDK: ``kmeans_balanced`` + learnable.
     """
     # Determine output dimension based on regression type
     regression_type = config.get("regression_type", "mean")

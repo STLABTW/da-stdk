@@ -1,9 +1,4 @@
-"""
-Conformal calibration for quantile regression (CQR symmetric interval expansion).
-
-Uses calibration set to compute expansion qhat; prediction interval becomes
-[q_lo - qhat, q_hi + qhat] for nominal (1 - alpha) coverage.
-"""
+"""CQR conformal calibration (symmetric interval expansion)."""
 
 import math
 
@@ -11,24 +6,7 @@ import numpy as np
 
 
 def compute_cqr_qhat(cal_preds, cal_y_true, quantile_levels, alpha=0.1):
-    """
-    Compute CQR expansion threshold from calibration set (symmetric expansion).
-
-    Nonconformity score per sample (standard CQR, nonnegative):
-        score = max(q_lo - y, y - q_hi, 0)
-    so points inside [q_lo, q_hi] get score 0. qhat = k-th order statistic of
-    scores with k = ceil((n+1)*(1-alpha)); qhat is forced >= 0.
-
-    Args:
-        cal_preds: (N, Q) calibration quantile predictions
-        cal_y_true: (N,) or (N, 1) calibration true values
-        quantile_levels: list of quantile levels (e.g. [0.05, 0.25, 0.5, 0.75, 0.95])
-        alpha: nominal miscoverage (0.1 -> 90% nominal)
-
-    Returns:
-        qhat: float, expansion amount (same units as y)
-        calibration_n: int, number of calibration samples used
-    """
+    """CQR expansion ``qhat`` from calibration scores; returns ``(qhat, n)``."""
     if cal_y_true.ndim > 1:
         cal_y_true = cal_y_true.flatten()
     quantile_levels = np.asarray(quantile_levels)
@@ -51,19 +29,7 @@ def compute_cqr_qhat(cal_preds, cal_y_true, quantile_levels, alpha=0.1):
 
 
 def compute_conformal_coverage(preds, y_true, quantile_levels, qhat, alpha=0.1):
-    """
-    Empirical coverage of the conformalized interval [q_lo - qhat, q_hi + qhat].
-
-    Args:
-        preds: (N, Q) quantile predictions
-        y_true: (N,) or (N, 1) true values
-        quantile_levels: list of quantile levels
-        qhat: expansion from compute_cqr_qhat
-        alpha: nominal miscoverage (0.1 -> 90% nominal)
-
-    Returns:
-        coverage: fraction of y_true inside the conformalized interval
-    """
+    """Coverage of [q_lo - qhat, q_hi + qhat]."""
     if y_true.ndim > 1:
         y_true = y_true.flatten()
     quantile_levels = np.asarray(quantile_levels)
@@ -98,25 +64,7 @@ def compute_cluster_aware_cqr(
     min_n=30,
     global_qhat_fallback=None,
 ):
-    """
-    Cluster-aware CQR: compute qhat per cluster, fallback to global for small clusters.
-
-    Args:
-        cal_preds: (N, Q) calibration predictions
-        cal_y_true: (N,) calibration true values
-        cal_coords: (N, 2) spatial coordinates
-        centers: (C, 2) spatial centers (init or grid; avoid trained for no leakage)
-        quantile_levels: list of quantile levels
-        alpha: nominal miscoverage (0.1 -> 90%)
-        min_n: minimum samples per cluster; else use global fallback
-        global_qhat_fallback: if provided, use when cluster too small; else compute from cluster
-
-    Returns:
-        qhat_per_cluster: dict mapping cluster_id -> qhat (or global fallback)
-        global_qhat: global qhat (for fallback and reporting)
-        mean_qhat_cluster: mean of per-cluster qhats (for reporting)
-        num_fallback_clusters: number of clusters that used global fallback (n < min_n)
-    """
+    """Per-cluster CQR ``qhat`` with global fallback when cluster size < ``min_n``."""
     if cal_y_true.ndim > 1:
         cal_y_true = cal_y_true.flatten()
     quantile_levels = np.asarray(quantile_levels)
@@ -170,9 +118,7 @@ def compute_cluster_conformal_coverage(
     alpha=0.1,
     global_qhat_fallback=0.0,
 ):
-    """
-    Coverage of cluster-wise conformal intervals. Each point uses its cluster's qhat.
-    """
+    """Coverage using each point's cluster-specific ``qhat``."""
     if y_true.ndim > 1:
         y_true = y_true.flatten()
     quantile_levels = np.asarray(quantile_levels)

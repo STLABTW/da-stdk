@@ -1,13 +1,4 @@
-"""
-KAUST CSV data loader
-
-Features:
-1. Load train.csv, test.csv (x, y, t, z format)
-2. Create site indices from (x, y) coordinates (train+test combined)
-3. Reconstruct time series matrix (T, S)
-4. Sample observed sites (Uniform/Biased)
-5. Sliding window Dataset (L-step context, H-step forecast)
-"""
+"""Load KAUST CSVs, build (T, S) grids, and optional windowed PyTorch datasets."""
 
 from typing import Dict, Optional, Tuple
 
@@ -20,18 +11,7 @@ from torch.utils.data import DataLoader, Dataset
 def load_kaust_csv_single(
     data_path: str, normalize: bool = True
 ) -> Tuple[np.ndarray, np.ndarray, Dict]:
-    """
-    Load KAUST CSV file (single file)
-
-    Args:
-        data_path: CSV file path
-        normalize: Whether to normalize z values
-
-    Returns:
-        z_data: (T, S) - Complete time series
-        coords: (S, 2) - Site coordinates [x, y], already in [0,1]
-        metadata: dict - Normalization statistics, etc.
-    """
+    """Load one KAUST CSV into ``z_data`` (T, S), ``coords`` (S, 2), and metadata."""
     # Load CSV
     df = pd.read_csv(data_path)
     print(f"[INFO] Loaded data: {len(df)} rows")
@@ -76,21 +56,7 @@ def load_kaust_csv_single(
 def load_kaust_csv(
     train_path: str, test_path: str, normalize: bool = True
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, Dict]:
-    """
-    Load and preprocess KAUST CSV files
-
-    Args:
-        train_path: train.csv file path
-        test_path: test.csv file path
-        normalize: Whether to normalize z values
-
-    Returns:
-        z_train: (T_tr, S) - Training time series
-        z_test: (T_te, S) - Test time series (initialized with NaN)
-        coords: (S, 2) - Site coordinates [x, y]
-        site_to_idx: dict - (x, y) → site index mapping
-        metadata: dict - Normalization statistics, etc.
-    """
+    """Load train/test CSV pair; test ``z`` may be NaN until filled from full file."""
     # Load CSV
     df_train = pd.read_csv(train_path)
     df_test = pd.read_csv(test_path)
@@ -176,20 +142,7 @@ def load_test_ground_truth_from_full(
     T_te_start: int,
     T_te: int,
 ) -> np.ndarray:
-    """
-    Load test-period z values from the full CSV (e.g. 2b_8.csv) so we can
-    evaluate on the provider's test set. Uses site_to_idx from load_kaust_csv
-    so site order matches.
-
-    Args:
-        full_csv_path: path to full CSV (x, y, t, z) with all time steps
-        site_to_idx: (x, y) -> index from load_kaust_csv
-        T_te_start: first test time step (1-based, e.g. 91)
-        T_te: number of test time steps
-
-    Returns:
-        z_test_gt: (T_te, S) float32 array
-    """
+    """Fill test-period ``z`` from a full CSV using ``site_to_idx`` ordering."""
     df = pd.read_csv(full_csv_path)
     S = len(site_to_idx)
     z_test_gt = np.full((T_te, S), np.nan, dtype=np.float32)
@@ -212,14 +165,7 @@ def load_kaust_csv_with_test_gt(
     full_csv_path: str,
     normalize: bool = False,
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, Dict]:
-    """
-    Load provider train/test split and fill test z from full CSV for evaluation.
-
-    Returns:
-        z_full: (T_tr + T_te, S) - train then test time steps
-        coords: (S, 2)
-        metadata: includes z_mean, z_std (from train only), T_tr, T_te, T_te_start
-    """
+    """Train/test split with test ``z`` from ``full_csv_path``; optional normalization."""
     z_train, z_test_empty, coords, site_to_idx, meta = load_kaust_csv(
         train_path, test_path, normalize=False
     )
@@ -252,20 +198,7 @@ def sample_observed_sites(
     bias_temp: float = 1.0,
     seed: Optional[int] = None,
 ) -> np.ndarray:
-    """
-    Sample observed sites
-
-    Args:
-        coords: (S, 2) - Site coordinates
-        obs_fraction: Observation ratio (0~1)
-        sampling_method: 'uniform' or 'biased'
-        bias_sigma: Biased sampling distance scale
-        bias_temp: Biased sampling temperature
-        seed: Random seed
-
-    Returns:
-        obs_indices: (n_obs,) - Observed site index array
-    """
+    """Return sorted site indices; ``uniform`` or Gaussian ``biased`` weights."""
     if seed is not None:
         np.random.seed(seed)
 
@@ -303,26 +236,7 @@ def sample_observed_sites(
 
 
 class KAUSTWindowDataset(Dataset):
-    """
-    Sliding window Dataset
-
-    During training:
-    - Input: Observed site data from [t0-L, t0) interval
-    - Target: All site data from [t0, t0+H) interval
-
-    Args:
-        z_full: (T, S) - Complete time series (train only)
-        coords: (S, 2) - Site coordinates
-        obs_indices: (n_obs,) - Observed site indices
-        L: context length
-        H: forecast horizon
-        stride: Sliding window stride (default 1)
-        t0_min: Minimum t0 (use L if None)
-        t0_max: Maximum t0 (use T-H+1 if None)
-        use_coords_cov: Use (x, y) as covariates
-        use_time_cov: Use t as covariates
-        time_encoding: Time encoding method {linear, sinusoidal}
-    """
+    """Sliding windows: context [t0-L, t0) on observed sites, target [t0, t0+H)."""
 
     def __init__(
         self,
@@ -478,26 +392,7 @@ def create_dataloaders(
     config: dict,
     val_ratio: float = 0.2,
 ) -> Tuple[DataLoader, DataLoader]:
-    """
-    Create Train/Val DataLoaders (split by Target)
-
-    Context is taken from entire z_train,
-    but Target (prediction interval) is split into train/valid
-
-    Example: T=90, L=24, H=10, val_ratio=0.2
-        - Train: t0 = [24, 72), target = [24, 82)
-        - Valid: t0 = [72, 80], target = [72, 90)
-
-    Args:
-        z_train: (T_tr, S) - Training time series
-        coords: (S, 2) - Site coordinates
-        obs_indices: (n_obs,) - Observed sites
-        config: kaust_data.yaml configuration
-        val_ratio: Validation ratio
-
-    Returns:
-        train_loader, val_loader
-    """
+    """Train/val ``DataLoader``s with temporal split on forecast origin ``t0``."""
     L = config["L"]
     H = config["H"]
     batch_size = config["batch_size"]
@@ -561,20 +456,7 @@ def create_dataloaders(
 def prepare_test_context(
     z_train: np.ndarray, coords: np.ndarray, obs_indices: np.ndarray, L: int
 ) -> Dict[str, torch.Tensor]:
-    """
-    Prepare context for test prediction
-
-    Use last L time points as context
-
-    Args:
-        z_train: (T_tr, S)
-        coords: (S, 2)
-        obs_indices: (n_obs,)
-        L: context length
-
-    Returns:
-        context: dict with obs_coords, target_coords, y_hist_obs
-    """
+    """Last ``L`` steps on observed sites as test context dict."""
     T_tr, S = z_train.shape
 
     # Last L time points
@@ -602,17 +484,7 @@ def predictions_to_csv(
     z_std: float,
     denormalize: bool = True,
 ):
-    """
-    Save prediction results to CSV for submission
-
-    Args:
-        y_pred: (H, S) - Predictions
-        test_csv_path: Original test.csv path (for row order reference)
-        output_path: Output CSV path
-        site_to_idx: (x, y) → site index mapping
-        z_mean, z_std: Normalization statistics
-        denormalize: Whether to denormalize
-    """
+    """Write ``y_pred`` (H, S) to submission CSV matching ``test_csv_path`` rows."""
     # Load test.csv
     df_test = pd.read_csv(test_csv_path)
 

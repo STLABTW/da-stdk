@@ -1,6 +1,4 @@
-"""
-Spatial basis evolution visualization: initial vs final centers, optional movement paths.
-"""
+"""Spatial basis center trajectories during training."""
 
 from pathlib import Path
 

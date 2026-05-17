@@ -1,7 +1,4 @@
-"""
-Trainer and evaluate_model for spatio-temporal interpolation.
-Encapsulates training loop, validation, early stopping, EMA, and evaluation metrics.
-"""
+"""Training loop, evaluation, and early stopping."""
 
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -30,13 +27,7 @@ def evaluate_model(
     device: torch.device,
     config: Optional[Any] = None,
 ) -> Dict[str, float]:
-    """
-    Evaluate model on a dataset.
-
-    Returns:
-        metrics: dict with 'mse', 'mae', 'rmse', and optionally 'check_loss', 'crps'
-        for quantile/multi-quantile.
-    """
+    """Run model on ``data_loader``; return MSE/MAE/RMSE and quantile metrics if applicable."""
     model.eval()
     all_preds: List[np.ndarray] = []
     all_trues: List[np.ndarray] = []
@@ -139,10 +130,7 @@ def evaluate_model(
 
 
 class Trainer:
-    """
-    Trains a spatio-temporal interpolation model with optional EMA, progressive
-    unfreezing, warmup, and early stopping. Use .fit() to run the full loop.
-    """
+    """Full training loop with EMA, basis unfreeze, warmup, and early stopping."""
 
     def __init__(
         self,

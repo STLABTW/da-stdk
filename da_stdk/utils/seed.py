@@ -1,6 +1,4 @@
-"""
-Seed fixing utility
-"""
+"""Reproducibility helpers."""
 
 import random
 
@@ -9,12 +7,7 @@ import torch
 
 
 def set_seed(seed: int):
-    """
-    Fix all random seeds for reproducible results
-
-    Args:
-        seed: Seed value to fix
-    """
+    """Set Python, NumPy, and PyTorch seeds (CUDA deterministic if available)."""
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)

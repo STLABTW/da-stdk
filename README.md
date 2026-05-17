@@ -12,6 +12,12 @@ Reference code for **cluster-aware conformal calibration** in spatio-temporal di
 
 Benchmarks in this repo use the KAUST spatio-temporal datasets (scenarios 2a/2b).
 
+## Architecture
+
+![Model backbone](artifacts/backbone.png)
+
+Cluster-adaptive spatial basis, temporal basis, and covariates are concatenated and passed through a shared MLP trunk. Quantile heads predict multiple levels; cluster-aware CQR produces calibrated prediction intervals.
+
 ## Install
 
 Python 3.10+ and [Poetry](https://python-poetry.org/) are enough for most use:
@@ -74,4 +80,19 @@ pre-commit run --all-files
 
 ## Citation
 
-If you use this code, please cite our paper (link TBD).
+If you use this code, please cite:
+
+> **Cluster-Aware Conformal Calibration for Spatio-Temporal Distributional Prediction**
+> Gooyoung Kim, Chae Young Lim, Wen-Ting Wang, Hao-Yun Huang, Wei-Ying Wu
+> arXiv preprint (link forthcoming)
+
+```bibtex
+@misc{kim2026cluster,
+  title        = {Cluster-Aware Conformal Calibration for Spatio-Temporal Distributional Prediction},
+  author       = {Kim, Gooyoung and Lim, Chae Young and Wang, Wen-Ting and Huang, Hao-Yun and Wu, Wei-Ying},
+  year         = {2026},
+  note         = {arXiv preprint, forthcoming},
+}
+```
+
+When the arXiv entry is available, add `eprint`, `archivePrefix`, and `primaryClass` (or `url`) to the BibTeX above.

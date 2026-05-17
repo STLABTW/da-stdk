@@ -1,4 +1,4 @@
-"""DA-STDK models."""
+"""Model definitions (``STDKMLP``)."""
 
 from .stdk_mlp import STDKMLP, create_model
 

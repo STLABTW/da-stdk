@@ -1,11 +1,4 @@
-"""
-KAUST experiment analysis: summary tables, coverage metrics, and paper figures.
-
-Provides load_table_4_4_results, create_table_4_4, build_summary_by_method,
-plot functions (create_cluster_gain_plot, create_coverage_4methods_plot,
-create_coverage_comparison_plot, create_spatial_coverage_comparison_plots,
-_create_paper_main_figures), and print_table_4_4 for use by scripts/analyze_table_4_4.py.
-"""
+"""KAUST benchmark tables, coverage summaries, and paper figures."""
 
 import json
 import warnings

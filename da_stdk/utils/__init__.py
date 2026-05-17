@@ -1,6 +1,4 @@
-"""
-Utility functions for STNF-XAttn
-"""
+"""Seeding, metrics, EMA, and conformal helpers."""
 
 from .ema import ModelEMA
 from .metrics import compute_metrics, compute_spatial_metrics, print_metrics

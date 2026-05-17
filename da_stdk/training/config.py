@@ -1,7 +1,4 @@
-"""
-Typed config for ST interpolation training. Paper-aligned defaults (KAUST experiment).
-Compatible with existing dict-based usage via .get(key, default).
-"""
+"""Typed training config (YAML / dict compatible via ``.get``)."""
 
 from __future__ import annotations
 
@@ -30,10 +27,7 @@ def _default_quantile_levels() -> List[float]:
 
 @dataclass
 class TrainConfig:
-    """
-    Single dataclass for all training/config keys. Use from_yaml() or from_dict().
-    Code that expects a dict can use cfg.get('key', default) for compatibility.
-    """
+    """All training hyperparameters; load via ``from_yaml`` / ``from_dict``."""
 
     # Experiment / tag
     tag: str = "integrated"

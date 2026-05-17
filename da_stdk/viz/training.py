@@ -1,6 +1,4 @@
-"""
-Training curves visualization (loss, RMSE, learning rate).
-"""
+"""Training curve plots."""
 
 import matplotlib
 

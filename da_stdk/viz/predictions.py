@@ -1,6 +1,4 @@
-"""
-Prediction map visualization: true / predicted / bias heatmaps at selected time points.
-"""
+"""True / predicted / bias heatmaps at selected times."""
 
 from pathlib import Path
 

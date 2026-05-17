@@ -48,4 +48,5 @@ Thumbs.db
 
 .local/
 results/
-.coverage/
+dist/
+.coverage

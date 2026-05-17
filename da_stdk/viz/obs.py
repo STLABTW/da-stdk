@@ -1,6 +1,4 @@
-"""
-Observation pattern visualization (train/valid/test per site) and observation density maps.
-"""
+"""Observation layout and density maps."""
 
 from pathlib import Path
 
@@ -13,16 +11,7 @@ from scipy.interpolate import griddata
 
 
 def plot_observation_pattern(coords, obs_mask, train_mask, valid_mask, output_dir):
-    """
-    Plot the spatial pattern of observations (train/valid/test per site).
-
-    Args:
-        coords: (S, 2) coordinates
-        obs_mask: (T, S) observation mask
-        train_mask: (T, S) training mask
-        valid_mask: (T, S) validation mask
-        output_dir: output directory (Path or str)
-    """
+    """Four-panel map of obs / train / valid / holdout counts per site."""
     T, S = obs_mask.shape
     point_size = max(5, min(100, 13 * np.sqrt(1000 / S)))
 

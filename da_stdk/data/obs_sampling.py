@@ -1,24 +1,10 @@
-"""
-Observation sampling: spatial probability function and observation mask sampling.
-
-Used by train_default and visualize_obs_density. KAUST experiment: obs_ratio 0.1,
-obs_method site-wise/random, obs_spatial_pattern uniform/corner (intensity 10).
-"""
+"""Spatial observation masks (uniform or corner-biased density)."""
 
 import numpy as np
 
 
 def create_spatial_obs_prob_fn(pattern="uniform", intensity=1.0):
-    """
-    Create spatial observation probability function.
-
-    Args:
-        pattern: 'uniform', 'corner', or custom function
-        intensity: for 'corner': p(s) ∝ (1 + intensity * ||s||)^{-2}; paper uses 10.0
-
-    Returns:
-        obs_prob_fn: function(coord) -> probability, or None for uniform
-    """
+    """Return site weight fn, or None for uniform. ``corner``: p(s) ∝ (1 + intensity‖s‖)⁻²."""
     if pattern == "uniform" or pattern is None:
         return None
 
@@ -38,22 +24,7 @@ def create_spatial_obs_prob_fn(pattern="uniform", intensity=1.0):
 def sample_observations(
     z_data, coords, obs_method="site-wise", obs_ratio=0.5, obs_prob_fn=None, seed=None, config=None
 ):
-    """
-    Sample observations from full spatio-temporal data.
-
-    Args:
-        z_data: (T, S) full data
-        coords: (S, 2) spatial coordinates in [0,1]^2
-        obs_method: 'site-wise' (fixed sites) or 'random' (Bernoulli per (t,s))
-        obs_ratio: target observation ratio (~10% in paper)
-        obs_prob_fn: function(coord) -> prob; if None, uniform
-        seed: random seed
-        config: optional config dict (unused; for API compatibility)
-
-    Returns:
-        obs_mask: (T, S) boolean observed locations
-        obs_sites: 1d array of site indices observed at least once (for site-wise: selected sites)
-    """
+    """Sample ``obs_mask`` (T, S) and observed site indices."""
     if seed is not None:
         np.random.seed(seed)
 

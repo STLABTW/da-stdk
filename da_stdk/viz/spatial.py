@@ -1,6 +1,4 @@
-"""
-Spatial visualizations: MSE heatmaps, coverage maps, conformal qhat.
-"""
+"""Spatial MSE and coverage maps."""
 
 import warnings
 from pathlib import Path

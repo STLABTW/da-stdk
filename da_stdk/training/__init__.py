@@ -1,6 +1,4 @@
-"""
-Training utilities: typed config, Trainer, and evaluate_model.
-"""
+"""Config, trainer, and evaluation."""
 
 from .config import TrainConfig, from_dict, from_yaml
 from .trainer import Trainer, evaluate_model

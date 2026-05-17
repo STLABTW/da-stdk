@@ -1,6 +1,4 @@
-"""
-Data I/O for STNF-XAttn
-"""
+"""KAUST loading, observation sampling, and train/valid splits."""
 
 from .kaust_loader import (
     KAUSTWindowDataset,

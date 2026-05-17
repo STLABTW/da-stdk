@@ -1,27 +1,10 @@
-"""
-Train/validation split of observed (t,s) pairs.
-
-KAUST experiment: split_method random, train_ratio 0.8 (80% train, 20% valid for calibration).
-"""
+"""Split observed (t, s) pairs into train and validation masks."""
 
 import numpy as np
 
 
 def split_train_valid(obs_mask, obs_sites, split_method="site-wise", train_ratio=0.8, seed=None):
-    """
-    Split observed data into train and validation masks.
-
-    Args:
-        obs_mask: (T, S) boolean array of observations
-        obs_sites: 1d array of observed site indices (from sample_observations)
-        split_method: 'site-wise' (split by sites) or 'random' (split (t,s) pairs)
-        train_ratio: fraction for training (paper: 0.8)
-        seed: random seed
-
-    Returns:
-        train_mask: (T, S) boolean for training
-        valid_mask: (T, S) boolean for validation
-    """
+    """Return ``train_mask`` and ``valid_mask`` over observed (t, s) pairs."""
     if seed is not None:
         np.random.seed(seed)
 

@@ -1,6 +1,4 @@
-"""
-Evaluation metrics calculation utility
-"""
+"""Regression metrics (RMSE, MAE, R²) and spatial bin summaries."""
 
 from typing import Dict, Union
 
@@ -13,17 +11,7 @@ def compute_metrics(
     y_pred: Union[np.ndarray, torch.Tensor],
     per_horizon: bool = False,
 ) -> Dict[str, float]:
-    """
-    Calculate regression evaluation metrics (RMSE, MAE, R²)
-
-    Args:
-        y_true: Ground truth, shape (B, H, S, 1) or (N,)
-        y_pred: Predictions, shape (B, H, S, 1) or (N,)
-        per_horizon: If True, also return per-horizon metrics
-
-    Returns:
-        metrics: {'rmse': float, 'mae': float, 'r2': float, ...}
-    """
+    """Return RMSE, MAE, R² (optional per-horizon if 4D tensors)."""
     # Tensor to numpy
     if isinstance(y_true, torch.Tensor):
         y_true = y_true.detach().cpu().numpy()
@@ -84,18 +72,7 @@ def compute_spatial_metrics(
     coords: np.ndarray,
     n_bins: int = 5,
 ) -> Dict[str, list]:
-    """
-    Performance analysis by spatial region (based on distance from origin)
-
-    Args:
-        y_true: Ground truth, shape (B, H, S, 1)
-        y_pred: Predictions, shape (B, H, S, 1)
-        coords: Site coordinates, shape (S, 2) with [x, y]
-        n_bins: Number of distance bins
-
-    Returns:
-        spatial_metrics: {'distances': [...], 'rmse_by_dist': [...], ...}
-    """
+    """RMSE/MAE by radial distance bins from origin."""
     if isinstance(y_true, torch.Tensor):
         y_true = y_true.detach().cpu().numpy()
     if isinstance(y_pred, torch.Tensor):
@@ -144,13 +121,7 @@ def compute_spatial_metrics(
 
 
 def print_metrics(metrics: Dict[str, float], prefix: str = ""):
-    """
-    Print metrics in a readable format
-
-    Args:
-        metrics: Output from compute_metrics
-        prefix: Prefix to add before output (e.g., "Train", "Val")
-    """
+    """Print RMSE, MAE, R² from ``compute_metrics``."""
     print(f"{prefix} Metrics:")
     print(f"  RMSE: {metrics['rmse']:.6f}")
     print(f"  MAE:  {metrics['mae']:.6f}")

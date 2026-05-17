@@ -1,42 +1,17 @@
-"""
-CRPS and related metrics (Equation 4.6, paper).
-
-CRPS(F, y) = 2 * Σ_k w_k ρ_{τ_k}(y - Q_{τ_k})
-Paper uses trapezoidal weights; see trapezoidal_weights_for_quantiles.
-"""
+"""CRPS (Eq. 4.6), check loss, PICP, and QICE."""
 
 import numpy as np
 import torch
 
 
 def check_loss_numpy(y_pred, y_true, quantile):
-    """
-    Compute quantile (check) loss using numpy (for CRPS computation).
-
-    Args:
-        y_pred: predicted values (N,)
-        y_true: true values (N,)
-        quantile: target quantile level (e.g. 0.1, 0.5, 0.9)
-
-    Returns:
-        Mean check loss (scalar)
-    """
+    """Mean quantile (check) loss, NumPy."""
     errors = y_true - y_pred
     return np.mean(np.maximum((quantile - 1) * errors, quantile * errors))
 
 
 def quantile_loss(y_pred: torch.Tensor, y_true: torch.Tensor, quantile: float) -> torch.Tensor:
-    """
-    Compute quantile (check) loss for quantile regression (PyTorch).
-
-    Args:
-        y_pred: predicted values (B,) or (B, 1)
-        y_true: true values (B,) or (B, 1)
-        quantile: target quantile level (e.g. 0.1, 0.5, 0.9)
-
-    Returns:
-        Scalar tensor (mean over batch)
-    """
+    """Mean quantile (check) loss, PyTorch."""
     if y_pred.dim() > 1:
         y_pred = y_pred.squeeze(1)
     if y_true.dim() > 1:
@@ -46,11 +21,7 @@ def quantile_loss(y_pred: torch.Tensor, y_true: torch.Tensor, quantile: float) -
 
 
 def trapezoidal_weights_for_quantiles(quantile_levels):
-    """
-    Trapezoidal quadrature weights for quantile levels (for CRPS approximation).
-    w_0 = (τ_1 - τ_0)/2, w_k = (τ_{k+1} - τ_{k-1})/2, w_{K-1} = (τ_{K-1} - τ_{K-2})/2;
-    then normalized to sum to 1.
-    """
+    """Normalized trapezoidal weights for CRPS over quantile levels."""
     q = np.asarray(quantile_levels, dtype=float)
     q = np.sort(q)
     K = len(q)
@@ -68,19 +39,7 @@ def trapezoidal_weights_for_quantiles(quantile_levels):
 
 
 def compute_crps(predictions_dict, y_true, weights=None):
-    """
-    Compute CRPS from quantile predictions using Equation 4.6.
-
-    CRPS(F, y) = 2 * Σ_k w_k ρ_{τ_k}(y - Q_{τ_k})
-
-    Args:
-        predictions_dict: dict of {quantile_level: predictions (N,)}
-        y_true: true values (N,)
-        weights: optional quadrature weights (default: uniform)
-
-    Returns:
-        CRPS score (lower is better)
-    """
+    """CRPS from ``{τ: predictions}``; 2 Σ_k w_k ρ_τ(y - Q_τ)."""
     quantiles = sorted(predictions_dict.keys())
     K = len(quantiles)
     if K == 0:
@@ -109,19 +68,7 @@ def compute_crps(predictions_dict, y_true, weights=None):
 def compute_crps_multi_quantile(
     preds, y_true, quantile_levels, weights=None, crps_weighting="uniform"
 ):
-    """
-    Compute CRPS for multi-quantile output (N, Q) using Equation 4.6.
-
-    Args:
-        preds: (N, Q) predictions
-        y_true: (N,) or (N, 1)
-        quantile_levels: list [q1, ..., qQ]
-        weights: optional (overrides crps_weighting if provided)
-        crps_weighting: 'uniform' or 'trapezoidal'
-
-    Returns:
-        CRPS score (lower is better)
-    """
+    """CRPS from (N, Q) preds; ``crps_weighting``: ``uniform`` or ``trapezoidal``."""
     if y_true.ndim > 1:
         y_true = y_true.flatten()
     if weights is None and crps_weighting == "trapezoidal":
@@ -131,10 +78,7 @@ def compute_crps_multi_quantile(
 
 
 def compute_picp(preds, y_true, quantile_levels, alpha=0.1):
-    """
-    Prediction Interval Coverage Probability: fraction of y_true inside
-    the (1-alpha) interval from quantile_levels closest to alpha/2 and 1-alpha/2.
-    """
+    """Empirical coverage of nominal (1 - alpha) quantile interval."""
     if y_true.ndim > 1:
         y_true = y_true.flatten()
     q_lo = alpha / 2
@@ -149,15 +93,12 @@ def compute_picp(preds, y_true, quantile_levels, alpha=0.1):
 
 
 def compute_coverage(preds, y_true, quantile_levels, alpha=0.1):
-    """Alias for compute_picp (backward compatibility)."""
+    """Alias for ``compute_picp``."""
     return compute_picp(preds, y_true, quantile_levels, alpha=alpha)
 
 
 def compute_qice(preds, y_true, quantile_levels, M=4):
-    """
-    Quantile Interval Coverage Error: mean absolute deviation of per-interval
-    coverage from target 1/M. Lower is better (more uniform coverage).
-    """
+    """QICE: mean |empirical coverage - 1/M| over M quantile bins."""
     if y_true.ndim > 1:
         y_true = y_true.flatten()
     N = len(y_true)

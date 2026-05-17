@@ -1,7 +1,4 @@
-"""
-Observation density visualization: compute density and plot 2x2 scenario maps.
-Used by scripts/visualize_obs_density.py.
-"""
+"""Observation density grids and 2×2 scenario comparison plots."""
 
 from pathlib import Path
 from typing import Optional, Union
@@ -25,21 +22,7 @@ def compute_observation_density(
     intensity: float = 10.0,
     seed: int = 42,
 ) -> np.ndarray:
-    """
-    Compute observation density for a single experiment.
-
-    Args:
-        z_data: (T, S) array
-        coords: (S, 2) array
-        obs_method: 'site-wise' or 'random'
-        spatial_pattern: 'uniform' or 'corner'
-        obs_ratio: observation ratio
-        intensity: intensity for corner pattern
-        seed: random seed
-
-    Returns:
-        density: (S,) array of observation frequencies (0 to 1)
-    """
+    """Per-site observation frequency under one sampling scenario."""
     T, S = z_data.shape
     obs_prob_fn = create_spatial_obs_prob_fn(pattern=spatial_pattern, intensity=intensity)
     obs_mask, _ = sample_observations(
