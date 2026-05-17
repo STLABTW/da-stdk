@@ -1,0 +1,75 @@
+# DA-STDK
+
+[![PyPI](https://img.shields.io/pypi/v/da-stdk)](https://pypi.org/project/da-stdk/)
+[![Python](https://img.shields.io/pypi/pyversions/da-stdk)](https://pypi.org/project/da-stdk/)
+[![Tests](https://github.com/STLABTW/da-stdk/actions/workflows/test.yaml/badge.svg)](https://github.com/STLABTW/da-stdk/actions/workflows/test.yaml)
+[![Code Quality](https://github.com/STLABTW/da-stdk/actions/workflows/code-quality.yaml/badge.svg)](https://github.com/STLABTW/da-stdk/actions/workflows/code-quality.yaml)
+
+Reference code for **cluster-aware conformal calibration** in spatio-temporal distributional prediction.
+
+- **Cluster-adaptive spatial bases** — centers and scales initialized from sampling density, so capacity follows heterogeneous observation patterns instead of a fixed grid.
+- **Cluster-aware conformal calibration** — interval widths are calibrated within spatial clusters, with a global fallback when local samples are scarce.
+
+Benchmarks in this repo use the KAUST spatio-temporal datasets (scenarios 2a/2b).
+
+## Install
+
+Python 3.10+ and [Poetry](https://python-poetry.org/) are enough for most use:
+
+```bash
+poetry install --with dev
+```
+
+Optional: Conda env via `bash envs/conda/build_conda_env.sh` then `conda activate st-dadk`.
+
+```bash
+pip install da-stdk   # after a PyPI release
+# or locally:
+pip install -e .
+```
+
+```python
+import da_stdk
+from da_stdk.models import STInterpMLP, create_model
+from da_stdk.dataio.kaust_loader import load_kaust_csv_single
+```
+
+## Run
+
+**Single training run**
+
+```bash
+poetry run python scripts/train_st_interp.py --config configs/config_st_interp.yaml
+```
+
+**KAUST benchmark (multiple scenarios / models)**
+
+```bash
+make table44
+# or:
+poetry run python scripts/run_kaust_data.py --config configs/config_st_interp.yaml --n_experiments 10
+poetry run python scripts/analyze_kaust_results.py <results_dir>
+```
+
+More scripts and flags: [`scripts/README.md`](scripts/README.md).
+
+## Layout
+
+| Path | Contents |
+|------|----------|
+| `da_stdk/` | Models, training, data I/O, conformal utils, viz |
+| `scripts/` | Training and experiment drivers |
+| `configs/` | YAML configs |
+| `data/` | KAUST CSVs (large; not on PyPI) |
+
+## Dev
+
+```bash
+make test          # pytest
+make lint          # black, isort, mypy
+pre-commit run --all-files
+```
+
+## Citation
+
+If you use this code, please cite our paper (link TBD).

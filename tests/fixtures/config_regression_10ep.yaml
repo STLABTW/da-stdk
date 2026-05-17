@@ -1,0 +1,64 @@
+# Same as config_regression.yaml but epochs=10 for baseline recording (Phase 0.2)
+# Copy of config_regression with epochs: 10
+
+tag: regression_baseline
+data_file: data/2a/2a_8.csv
+
+k_spatial_centers: [25]
+k_temporal_centers: [10]
+spatial_basis_function: wendland
+spatial_init_method: uniform
+spatial_learnable: false
+
+gradient_damping: true
+damping_threshold: 0.0
+damping_strength: 5.0
+domain_penalty_weight: 0.01
+movement_penalty_weight: 0.0
+
+sparsity_penalty_type: none
+non_crossing_lambda: 0.0
+non_crossing_l1_penalization: true
+
+hidden_dims: [256, 256, 128]
+dropout: 0.1
+layernorm: true
+p_covariates: 0
+
+use_provider_split: false
+obs_method: site-wise
+obs_ratio: 0.1
+obs_spatial_pattern: corner
+obs_spatial_intensity: 10.0
+split_method: random
+train_ratio: 0.8
+calibration_ratio_from_train: 0.3
+calibration_split_method: random
+conformal_mode: both
+conformal_center_source: init
+conformal_cluster_min_n: 30
+conformal_alpha: 0.1
+save_predictions_quantile: false
+normalize_target: false
+
+epochs: 10
+lr: 0.01
+basis_lr_ratio: 0.05
+weight_decay: 5e-4
+batch_size: 4096
+patience: 50
+grad_clip: 10.0
+scheduler: cosine
+warmup_epochs: 2
+basis_unfreeze_epoch: 2
+basis_lr_rampup_epochs: 2
+
+n_experiments: 1
+base_seed: 2025
+num_workers: 0
+
+regression_type: multi-quantile
+quantile_levels: [0.05, 0.25, 0.5, 0.75, 0.95]
+use_delta_reparameterization: false
+
+device: cpu

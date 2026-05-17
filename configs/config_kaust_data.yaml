@@ -1,0 +1,14 @@
+# KAUST data experiment overrides (merged on top of config_st_interp.yaml by run_kaust_data.py)
+# Paper: split_method=random, train_ratio=0.8, calibration 20% from train, lr=0.01, trapezoidal CRPS.
+
+data_file: data/2b/2b_8.csv
+split_method: random
+train_ratio: 0.8
+calibration_ratio_from_train: 0.2
+calibration_split_method: random
+n_experiments: 10
+base_seed: 2025
+lr: 0.01
+basis_lr_ratio: 0.05
+conformal_mode: both
+crps_weighting: trapezoidal
