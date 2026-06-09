@@ -84,7 +84,8 @@ If you use this code, please cite:
 
 > **Cluster-Aware Conformal Calibration for Spatio-Temporal Distributional Prediction**
 > Gooyoung Kim, Chae Young Lim, Wen-Ting Wang, Hao-Yun Huang, Wei-Ying Wu
-> arXiv preprint (link forthcoming)
+> arXiv preprint arXiv:2606.06753, 2026.
+> https://arxiv.org/abs/2606.06753
 
 ```bibtex
 @misc{kim2026clusterawareconformalcalibrationspatiotemporal,
@@ -97,4 +98,3 @@ If you use this code, please cite:
       url={https://arxiv.org/abs/2606.06753}, 
 }
 ```
-
