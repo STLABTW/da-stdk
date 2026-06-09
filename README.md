@@ -98,4 +98,3 @@ If you use this code, please cite:
 }
 ```
 
-When the arXiv entry is available, add `eprint`, `archivePrefix`, and `primaryClass` (or `url`) to the BibTeX above.
