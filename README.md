@@ -89,12 +89,12 @@ If you use this code, please cite:
 
 ```bibtex
 @misc{kim2026clusterawareconformalcalibrationspatiotemporal,
-      title={Cluster-Aware Conformal Calibration for Spatio-Temporal Distributional Prediction}, 
+      title={Cluster-Aware Conformal Calibration for Spatio-Temporal Distributional Prediction},
       author={Gooyoung Kim and Chae Young Lim and Wen-Ting Wang and Hao-Yun Huang and Wei-Ying Wu},
       year={2026},
       eprint={2606.06753},
       archivePrefix={arXiv},
       primaryClass={stat.ME},
-      url={https://arxiv.org/abs/2606.06753}, 
+      url={https://arxiv.org/abs/2606.06753},
 }
 ```
